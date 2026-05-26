@@ -368,10 +368,18 @@ class MainWindow(QMainWindow):
         self._log_files[log_file.path] = log_file
         self._file_panel.update_file(log_file)
         self._model.refresh()
+        self._auto_hide_empty_columns()
         total = self._index.total_count()
         self._count_label.setText(f"{total:,} entries")
         self._progress_bar.setVisible(False)
         self._status(f"Loaded: {os.path.basename(log_file.path)} — {log_file.entry_count:,} entries")
+
+    def _auto_hide_empty_columns(self) -> None:
+        """Hide optional columns (Host, PID, TID, Corr ID) when they have no data."""
+        checks = [(3, "hostname"), (4, "pid"), (5, "tid"), (6, "correlation_id")]
+        for col_idx, field in checks:
+            has_data = self._index.count_non_empty(field) > 0
+            self._table_view.setColumnHidden(col_idx, not has_data)
 
     def _on_load_error(self, msg: str) -> None:
         self._progress_bar.setVisible(False)

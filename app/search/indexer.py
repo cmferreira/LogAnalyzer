@@ -147,6 +147,18 @@ class LogIndex:
             row = self._conn.execute("SELECT COUNT(*) FROM entries").fetchone()
             return row[0] if row else 0
 
+    def count_non_empty(self, field: str) -> int:
+        _ALLOWED = {"hostname", "pid", "tid", "correlation_id", "user_"}
+        db_field = "user_" if field == "user" else field
+        if db_field not in _ALLOWED:
+            return 0
+        with self._lock:
+            row = self._conn.execute(
+                f"SELECT COUNT(*) FROM entries"
+                f" WHERE {db_field} IS NOT NULL AND CAST({db_field} AS TEXT) != ''"
+            ).fetchone()
+            return row[0] if row else 0
+
     def get_page(self, offset: int, limit: int, filter_state: Optional[FilterState] = None) -> list[LogEntry]:
         sql, params = self._build_query(filter_state, offset, limit)
         with self._lock:

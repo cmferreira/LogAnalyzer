@@ -83,12 +83,83 @@ def _parse_timestamp(ts_str: str) -> Optional[datetime]:
     return None
 
 
+def _line_has_timestamp(line: str) -> bool:
+    for pattern in _TS_PATTERNS:
+        if pattern.match(line) or (pattern.search(line[:30]) and pattern.search(line[:30]).start() < 5):
+            return True
+    return False
+
+
 class GenericParser(BaseParser):
     name = "generic"
     supported_extensions = [".log", ".txt", ".out", ".err"]
 
     def probe(self, sample_lines: list[str]) -> float:
         return 0.1  # lowest priority fallback
+
+    def parse_lines(self, lines: list[str], source_file: str) -> list[LogEntry]:
+        # Sample first 30 non-empty lines to decide grouping strategy
+        sample = [l for l in lines[:50] if l.strip()][:30]
+        ts_count = sum(1 for l in sample if _line_has_timestamp(l))
+        use_grouping = ts_count >= max(1, len(sample) * 0.3)
+
+        if not use_grouping:
+            # No timestamps (e.g. stack trace) — each line is its own entry
+            return super().parse_lines(lines, source_file)
+
+        # Structured file: lines without a timestamp continue the previous entry
+        from app.parsers.base_parser import FieldExtractor
+        entries: list[LogEntry] = []
+        current: Optional[LogEntry] = None
+        current_raw: list[str] = []
+
+        for line in lines:
+            stripped = line.rstrip("\r\n")
+            if not stripped.strip():
+                continue
+
+            if _line_has_timestamp(stripped):
+                if current is not None:
+                    current.raw_line = "\n".join(current_raw)
+                    entries.append(current)
+                try:
+                    current = self._parse_line(stripped, source_file)
+                    if current is None:
+                        current = LogEntry(message=stripped)
+                    current.id = self._next_id()
+                    current.source_file = source_file
+                    current.raw_line = stripped
+                    if current.level:
+                        current.level = current.level.upper()
+                    FieldExtractor.enrich(current)
+                except Exception:
+                    current = LogEntry(id=self._next_id(), source_file=source_file,
+                                       raw_line=stripped, message=stripped)
+                current_raw = [stripped]
+            else:
+                if current is not None:
+                    current.message += "\n" + stripped
+                    current_raw.append(stripped)
+                else:
+                    # continuation before any timestamp line
+                    try:
+                        e = self._parse_line(stripped, source_file)
+                        if e is None:
+                            e = LogEntry(message=stripped)
+                        e.id = self._next_id()
+                        e.source_file = source_file
+                        e.raw_line = stripped
+                        FieldExtractor.enrich(e)
+                        entries.append(e)
+                    except Exception:
+                        entries.append(LogEntry(id=self._next_id(), source_file=source_file,
+                                                 raw_line=stripped, message=stripped))
+
+        if current is not None:
+            current.raw_line = "\n".join(current_raw)
+            entries.append(current)
+
+        return entries
 
     def _parse_line(self, line: str, source_file: str) -> Optional[LogEntry]:
         entry = LogEntry()

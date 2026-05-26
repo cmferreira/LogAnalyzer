@@ -113,6 +113,11 @@ class LogTableModel(QAbstractTableModel):
                 return dt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
             except (ValueError, TypeError):
                 return str(val)
+        if field == "message":
+            s = str(val)
+            # Show only the first line for multi-line entries
+            first = s.split("\n", 1)[0] if "\n" in s else s
+            return first[:300] + " …" if len(first) > 300 else first
         if field == "source_file":
             import os
             return os.path.basename(str(val))
