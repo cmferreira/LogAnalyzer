@@ -27,7 +27,7 @@ _COLUMNS = [
     ("Raw Line", "raw_line"),
 ]
 
-_COL_WIDTHS = [160, 70, 150, 100, 55, 80, 140, 600, 0]
+_COL_WIDTHS = [160, 75, 210, 110, 55, 75, 130, 600, 0]
 
 
 class LogTableModel(QAbstractTableModel):

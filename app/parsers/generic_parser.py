@@ -38,6 +38,7 @@ _TS_FORMATS = [
     "%d/%b/%Y:%H:%M:%S %z",
     "%b %d %H:%M:%S",
     "%b  %d %H:%M:%S",
+    "%m/%d/%Y %H:%M:%S",   # American: MM/DD/YYYY (try before DD/MM to handle day>12)
     "%d/%m/%Y %H:%M:%S",
     "%Y/%m/%d %H:%M:%S",
 ]
@@ -115,11 +116,11 @@ class GenericParser(BaseParser):
                 if ts_m:
                     break
             if ts_m:
-                msg = line[ts_m.end():].strip(" |-[]:")
+                msg = line[ts_m.end():].strip(" |-:")
         if lm:
             lm2 = _LEVEL_RE.search(msg)
             if lm2:
-                msg = msg[lm2.end():].strip(" |-[]:")
+                msg = msg[lm2.end():].strip(" |-:")
 
         entry.message = msg or line
         return entry

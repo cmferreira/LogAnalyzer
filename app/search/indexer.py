@@ -250,16 +250,15 @@ class LogIndex:
         return clauses, params
 
     def _row_to_entry(self, r) -> LogEntry:
-        import json as _json
         extra = {}
         if r[18]:
             try:
-                extra = _json.loads(r[18])
+                extra = json.loads(r[18])
             except Exception:
                 pass
         return LogEntry(
             id=r[0],
-            timestamp=None,  # parsed on demand by UI
+            timestamp=r[1],  # ISO string; display code parses on demand
             level=r[2] or "",
             source_file=r[3] or "",
             message=r[4] or "",
