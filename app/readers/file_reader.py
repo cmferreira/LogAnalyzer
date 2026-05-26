@@ -34,13 +34,37 @@ class FileReader:
         try:
             with open(path, "rb") as f:
                 if use_mmap and file_size > 0:
-                    yield from self._read_mmap(f, file_size, encoding, progress_cb)
+                    yield from self._read_mmap_with_fallback(
+                        f, file_size, encoding, progress_cb
+                    )
                 else:
                     yield from self._read_normal(f, file_size, encoding, progress_cb)
         except PermissionError as e:
-            raise PermissionError(f"Cannot open file (permission denied): {path}") from e
+            raise PermissionError(
+                f"Sem permissão para ler o ficheiro: {os.path.basename(path)}"
+            ) from e
         except OSError as e:
-            raise OSError(f"Cannot open file: {path} — {e}") from e
+            raise OSError(
+                _friendly_oserror(e, os.path.basename(path))
+            ) from e
+
+    def _read_mmap_with_fallback(
+        self,
+        f,
+        file_size: int,
+        encoding: str,
+        progress_cb: Callable[[float], None] | None,
+    ) -> Iterator[list[str]]:
+        """Try mmap; if it fails (e.g. file locked, special flags), fall back to normal read."""
+        try:
+            yield from self._read_mmap(f, file_size, encoding, progress_cb)
+        except (OSError, mmap.error):
+            # Reset file position and fall back to line-by-line
+            try:
+                f.seek(0)
+            except OSError:
+                return
+            yield from self._read_normal(f, file_size, encoding, progress_cb)
 
     def _read_mmap(
         self,
@@ -108,3 +132,25 @@ class FileReader:
             if progress_cb:
                 progress_cb(1.0)
             yield chunk
+
+
+def _friendly_oserror(e: OSError, filename: str) -> str:
+    """Convert a raw OSError into a user-friendly message."""
+    errno_messages = {
+        2:  f"Ficheiro não encontrado: {filename}",
+        5:  f"Acesso negado (Access Denied): {filename}",
+        13: f"Sem permissão para ler: {filename}",
+        22: (
+            f"Não foi possível ler o ficheiro: {filename}\n\n"
+            "Possíveis causas:\n"
+            "  • O ficheiro está a ser usado por outro processo\n"
+            "  • O ficheiro está bloqueado (locked)\n"
+            "  • Path com caracteres inválidos\n"
+            "  • Ficheiro de sistema ou pipe especial\n\n"
+            "Sugestão: feche o processo que está a usar o ficheiro e tente novamente."
+        ),
+        32: f"O ficheiro está aberto por outro processo: {filename}",
+        33: f"O ficheiro está bloqueado: {filename}",
+    }
+    code = e.errno or 0
+    return errno_messages.get(code, f"Erro ao ler ficheiro ({e.strerror}): {filename}")
