@@ -1,0 +1,15 @@
+2024-01-15 10:00:01.123  INFO 12345 --- [main] com.example.Application          : Starting Application using Java 17.0.5
+2024-01-15 10:00:01.456  INFO 12345 --- [main] com.example.Application          : No active profile set, falling back to 1 default profile: "default"
+2024-01-15 10:00:02.789  INFO 12345 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer : Tomcat initialized with port(s): 8080 (http)
+2024-01-15 10:00:03.100  INFO 12345 --- [main] o.s.web.context.ContextLoader       : Root WebApplicationContext: initialization completed in 1200 ms
+2024-01-15 10:00:03.500  INFO 12345 --- [http-nio-8080-exec-1] c.e.controller.UserController       : GET /api/users correlation_id=abc-123-def-456 request_id=req-001
+2024-01-15 10:00:03.750  DEBUG 12345 --- [http-nio-8080-exec-1] c.e.service.UserService             : Fetching user list from database correlation_id=abc-123-def-456
+2024-01-15 10:00:04.200  INFO 12345 --- [http-nio-8080-exec-1] c.e.controller.UserController       : Returning 42 users correlation_id=abc-123-def-456 duration=700ms
+2024-01-15 10:01:00.000  WARN 12345 --- [scheduled-task-1] c.e.scheduler.CleanupTask           : Cleanup took longer than expected: 5200ms
+2024-01-15 10:01:05.000  ERROR 12345 --- [http-nio-8080-exec-3] c.e.controller.PaymentController    : Payment processing failed for user=john.doe transaction_id=txn-789-xyz
+2024-01-15 10:01:05.010  ERROR 12345 --- [http-nio-8080-exec-3] c.e.service.PaymentService          : Connection refused to payment gateway: 10.0.0.15:8443 transaction_id=txn-789-xyz
+2024-01-15 10:01:05.020  FATAL 12345 --- [http-nio-8080-exec-3] c.e.service.PaymentService          : Unrecoverable payment error, aborting transaction transaction_id=txn-789-xyz
+2024-01-15 10:02:00.000  INFO 12345 --- [http-nio-8080-exec-5] c.e.controller.HealthController     : Health check OK
+2024-01-15 10:02:30.000  WARN 12345 --- [db-pool-1] c.e.db.DatabasePool                 : Connection pool at 85% capacity (85/100)
+2024-01-15 10:03:00.000  ERROR 12345 --- [db-pool-1] c.e.db.DatabasePool                 : Connection pool exhausted! Requests queuing. hostname=app-server-01 pid=12345
+2024-01-15 10:03:01.000  CRITICAL 12345 --- [main] c.e.monitoring.AlertManager         : ALERT: Database connection pool critical threshold reached

@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/__pycache__/
+
+# PyInstaller output
+dist/
+*.spec.bak
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# App runtime
+config.json
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+Thumbs.db
+.DS_Store

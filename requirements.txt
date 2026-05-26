@@ -1,0 +1,8 @@
+PySide6>=6.6.0
+polars>=0.20.0
+watchdog>=3.0.0
+python-dateutil>=2.8.2
+chardet>=5.2.0
+lxml>=5.0.0
+python-evtx>=0.7.4
+pyinstaller>=6.0.0

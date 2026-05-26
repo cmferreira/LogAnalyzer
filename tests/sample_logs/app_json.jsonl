@@ -1,0 +1,8 @@
+{"timestamp":"2024-01-15T10:00:01.000Z","level":"INFO","message":"Application started","hostname":"api-gateway-01","pid":9999,"correlation_id":"abc-123-def-456","request_id":"req-001"}
+{"timestamp":"2024-01-15T10:00:02.500Z","level":"INFO","message":"Received request GET /api/orders","hostname":"api-gateway-01","pid":9999,"correlation_id":"abc-123-def-456","request_id":"req-001","user":"john.doe"}
+{"timestamp":"2024-01-15T10:00:02.600Z","level":"DEBUG","message":"Forwarding to order-service:8081","hostname":"api-gateway-01","pid":9999,"correlation_id":"abc-123-def-456"}
+{"timestamp":"2024-01-15T10:00:03.000Z","level":"WARN","message":"Order service response time: 400ms (threshold: 300ms)","hostname":"api-gateway-01","pid":9999,"correlation_id":"abc-123-def-456"}
+{"timestamp":"2024-01-15T10:01:00.000Z","level":"ERROR","message":"Upstream timeout from order-service after 5000ms","hostname":"api-gateway-01","pid":9999,"correlation_id":"xyz-999-abc-001","request_id":"req-042","user":"jane.smith","error_code":"E5001"}
+{"timestamp":"2024-01-15T10:01:00.100Z","level":"ERROR","message":"Returning 503 to client","hostname":"api-gateway-01","pid":9999,"correlation_id":"xyz-999-abc-001","request_id":"req-042"}
+{"timestamp":"2024-01-15T10:02:00.000Z","level":"INFO","message":"Health check passed","hostname":"api-gateway-01","pid":9999}
+{"timestamp":"2024-01-15T10:03:00.000Z","level":"CRITICAL","message":"Circuit breaker OPEN for order-service","hostname":"api-gateway-01","pid":9999,"error_code":"E9001"}

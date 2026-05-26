@@ -1,0 +1,5 @@
+10.0.0.1 - john.doe [15/Jan/2024:10:00:01 +0000] "GET /api/v1/orders HTTP/1.1" 200 2048 "-" "Mozilla/5.0"
+10.0.0.2 - - [15/Jan/2024:10:00:02 +0000] "GET /health HTTP/1.1" 200 32 "-" "kube-probe/1.28"
+10.0.0.1 - john.doe [15/Jan/2024:10:01:00 +0000] "POST /api/v1/orders HTTP/1.1" 503 512 "-" "Mozilla/5.0"
+10.0.0.3 - jane.smith [15/Jan/2024:10:01:30 +0000] "GET /api/v1/products HTTP/1.1" 200 8192 "-" "Mozilla/5.0"
+10.0.0.4 - - [15/Jan/2024:10:02:00 +0000] "GET /api/v1/missing HTTP/1.1" 404 64 "-" "curl/7.68.0"

@@ -1,0 +1,10 @@
+{"log":"2024-01-15T10:00:01.000Z INFO  Starting order-service v2.3.1\n","stream":"stdout","time":"2024-01-15T10:00:01.000Z"}
+{"log":"2024-01-15T10:00:02.000Z INFO  Connected to database at db-server-01:5432\n","stream":"stdout","time":"2024-01-15T10:00:02.000Z"}
+{"log":"2024-01-15T10:00:03.000Z INFO  Listening on :8081\n","stream":"stdout","time":"2024-01-15T10:00:03.000Z"}
+{"log":"2024-01-15T10:00:04.000Z INFO  Processing order #12345 correlation_id=abc-123-def-456\n","stream":"stdout","time":"2024-01-15T10:00:04.000Z"}
+{"log":"2024-01-15T10:00:04.500Z WARN  Inventory check slow: 350ms correlation_id=abc-123-def-456\n","stream":"stdout","time":"2024-01-15T10:00:04.500Z"}
+{"log":"2024-01-15T10:01:00.000Z WARN  Queue backlog growing: 450 pending jobs\n","stream":"stderr","time":"2024-01-15T10:01:00.000Z"}
+{"log":"2024-01-15T10:01:00.500Z ERROR Cannot connect to inventory-service: connection refused correlation_id=xyz-999-abc-001\n","stream":"stderr","time":"2024-01-15T10:01:00.500Z"}
+{"log":"2024-01-15T10:01:01.000Z ERROR Order #12346 failed: inventory unavailable correlation_id=xyz-999-abc-001\n","stream":"stderr","time":"2024-01-15T10:01:01.000Z"}
+{"log":"2024-01-15T10:02:00.000Z INFO  Retrying connection to inventory-service\n","stream":"stdout","time":"2024-01-15T10:02:00.000Z"}
+{"log":"2024-01-15T10:03:00.000Z FATAL Out of memory, container will restart\n","stream":"stderr","time":"2024-01-15T10:03:00.000Z"}
