@@ -53,12 +53,16 @@ class LoaderWorker(QThread):
             # EVTX: special binary parser
             if isinstance(parser, EvtxParser):
                 self.status.emit("Parsing Windows Event Log…")
-                entries = parser.parse_file(path, path)
-                log_file.encoding = "binary"
-                if entries:
-                    self._index.insert_batch(entries)
-                    self.chunk_ready.emit(entries)
-                    log_file.entry_count = len(entries)
+                self._index.begin_bulk_load()
+                try:
+                    entries = parser.parse_file(path, path)
+                    log_file.encoding = "binary"
+                    if entries:
+                        self._index.insert_batch(entries)
+                        self.chunk_ready.emit(entries)
+                        log_file.entry_count = len(entries)
+                finally:
+                    self._index.end_bulk_load()
                 self.progress.emit(1.0)
                 log_file.load_complete = True
                 self.finished.emit(log_file)
@@ -72,21 +76,25 @@ class LoaderWorker(QThread):
 
             self.status.emit(f"Parsing {os.path.basename(path)} ({parser.name})")
 
-            for chunk_lines in reader.read_chunks(
-                path,
-                encoding,
-                progress_cb=lambda p: self.progress.emit(p),
-            ):
-                if self._cancel.is_set():
-                    self.status.emit("Cancelled.")
-                    return
+            self._index.begin_bulk_load()
+            try:
+                for chunk_lines in reader.read_chunks(
+                    path,
+                    encoding,
+                    progress_cb=lambda p: self.progress.emit(p),
+                ):
+                    if self._cancel.is_set():
+                        self.status.emit("Cancelled.")
+                        return
 
-                entries = parser.parse_lines(chunk_lines, path)
-                if entries:
-                    self._index.insert_batch(entries)
-                    self.chunk_ready.emit(entries)
-                    total_entries += len(entries)
-                    log_file.entry_count = total_entries
+                    entries = parser.parse_lines(chunk_lines, path)
+                    if entries:
+                        self._index.insert_batch(entries)
+                        self.chunk_ready.emit(entries)
+                        total_entries += len(entries)
+                        log_file.entry_count = total_entries
+            finally:
+                self._index.end_bulk_load()
 
             log_file.load_complete = True
             self.progress.emit(1.0)

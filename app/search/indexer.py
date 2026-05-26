@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 import sqlite3
 import threading
 from typing import Optional
@@ -72,6 +73,7 @@ class LogIndex:
     def __init__(self, db_path: str = ":memory:") -> None:
         self._db_path = db_path
         self._lock = threading.Lock()
+        self._bulk_loading = False
         self._conn = self._make_connection()
         self._init_schema()
 
@@ -92,13 +94,33 @@ class LogIndex:
                 c.execute(idx)
             c.commit()
 
+    def begin_bulk_load(self) -> None:
+        with self._lock:
+            self._bulk_loading = True
+            self._conn.execute("PRAGMA synchronous=OFF")
+            self._conn.execute("PRAGMA journal_mode=MEMORY")
+
+    def end_bulk_load(self) -> None:
+        with self._lock:
+            self._bulk_loading = False
+            try:
+                self._conn.execute("INSERT INTO entries_fts(entries_fts) VALUES('rebuild')")
+                self._conn.commit()
+            except Exception:
+                pass
+            self._conn.execute("PRAGMA synchronous=NORMAL")
+            self._conn.execute("PRAGMA journal_mode=WAL")
+
     def insert_batch(self, entries: list[LogEntry]) -> None:
         rows = []
         fts_rows = []
+        bulk = self._bulk_loading
         for e in entries:
-            ts_epoch = e.timestamp.timestamp() if e.timestamp else None
+            try:
+                ts_epoch = e.timestamp.timestamp() if e.timestamp else None
+            except (OSError, OverflowError, ValueError):
+                ts_epoch = None
             ts_str = e.timestamp.isoformat() if e.timestamp else None
-            import json
             rows.append((
                 e.id, ts_str, ts_epoch, e.level, e.source_file,
                 e.message, e.raw_line, e.hostname, e.pid, e.tid,
@@ -108,14 +130,16 @@ class LogIndex:
                 ", ".join(e.file_paths),
                 json.dumps(e.extra_fields) if e.extra_fields else "",
             ))
-            fts_rows.append((
-                e.id, e.message or "", e.raw_line or "",
-                e.hostname or "", e.user or "", e.correlation_id or "",
-            ))
+            if not bulk:
+                fts_rows.append((
+                    e.id, e.message or "", e.raw_line or "",
+                    e.hostname or "", e.user or "", e.correlation_id or "",
+                ))
 
         with self._lock:
             self._conn.executemany(_INSERT, rows)
-            self._conn.executemany(_INSERT_FTS, fts_rows)
+            if fts_rows:
+                self._conn.executemany(_INSERT_FTS, fts_rows)
             self._conn.commit()
 
     def total_count(self) -> int:

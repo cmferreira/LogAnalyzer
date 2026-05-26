@@ -105,11 +105,12 @@ class MainWindow(QMainWindow):
 
         center_splitter.addWidget(self._view_tabs)
 
-        # Detail panel at bottom
+        # Detail panel at bottom — starts collapsed, expands on first entry click
         self._detail = DetailPanel()
         self._detail.correlate_requested.connect(self._on_correlate_id)
         center_splitter.addWidget(self._detail)
-        center_splitter.setSizes([600, 200])
+        center_splitter.setSizes([900, 0])
+        self._center_splitter = center_splitter
 
         self._main_splitter.addWidget(center_splitter)
         self._main_splitter.setSizes([240, 1160])
@@ -310,10 +311,12 @@ class MainWindow(QMainWindow):
 
         worker = LoaderWorker(path, self._index, self)
         worker.progress.connect(self._on_load_progress)
+        worker.progress.connect(lambda p, _p=path: self._file_panel.set_loading(_p, int(p * 100)))
         worker.chunk_ready.connect(self._on_chunk_ready)
         worker.status.connect(self._status)
         worker.finished.connect(self._on_load_finished)
         worker.error.connect(self._on_load_error)
+        worker.error.connect(lambda _msg, _p=path: self._file_panel.clear_loading(_p))
         self._active_workers.append(worker)
         self._progress_bar.setVisible(True)
         worker.start()
@@ -361,6 +364,7 @@ class MainWindow(QMainWindow):
             QTimer.singleShot(50, self._table_view.scroll_to_bottom)
 
     def _on_load_finished(self, log_file: LogFile) -> None:
+        self._file_panel.clear_loading(log_file.path)
         self._log_files[log_file.path] = log_file
         self._file_panel.update_file(log_file)
         self._model.refresh()
@@ -459,6 +463,10 @@ class MainWindow(QMainWindow):
 
     def _on_entry_selected(self, entry: LogEntry) -> None:
         self._detail.show_entry(entry)
+        sizes = self._center_splitter.sizes()
+        if sizes[1] < 80:
+            total = sizes[0] + sizes[1]
+            self._center_splitter.setSizes([total - 220, 220])
 
     def _on_correlate_id(self, corr_id: str) -> None:
         entries = self._index.get_entries_by_correlation_id(corr_id)

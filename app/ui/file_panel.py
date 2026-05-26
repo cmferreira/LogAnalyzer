@@ -20,6 +20,7 @@ class FilePanel(QWidget):
         self.setMinimumWidth(200)
         self.setMaximumWidth(260)
         self._files: dict[str, LogFile] = {}
+        self._progress: dict[str, int] = {}
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -38,6 +39,32 @@ class FilePanel(QWidget):
         self._tree.itemClicked.connect(self._on_item_clicked)
         layout.addWidget(self._tree)
 
+    def set_loading(self, path: str, pct: int) -> None:
+        self._progress[path] = pct
+        self._update_item_label(path)
+
+    def clear_loading(self, path: str) -> None:
+        self._progress.pop(path, None)
+        self._update_item_label(path)
+
+    def _item_label(self, lf: LogFile, path: str) -> str:
+        name = os.path.basename(path)
+        pct = self._progress.get(path)
+        count_str = f" ({lf.entry_count:,})" if lf.entry_count else ""
+        live_str = "  ▶" if lf.is_live else ""
+        pct_str = f"  [{pct}%]" if pct is not None else ""
+        return f"{name}{count_str}{live_str}{pct_str}"
+
+    def _update_item_label(self, path: str) -> None:
+        lf = self._files.get(path)
+        if not lf:
+            return
+        for i in range(self._tree.topLevelItemCount()):
+            item = self._tree.topLevelItem(i)
+            if item.data(0, Qt.ItemDataRole.UserRole) == path:
+                item.setText(0, self._item_label(lf, path))
+                return
+
     def add_file(self, log_file: LogFile) -> None:
         self._files[log_file.path] = log_file
         self._refresh_tree()
@@ -53,19 +80,18 @@ class FilePanel(QWidget):
     def _refresh_tree(self) -> None:
         self._tree.clear()
         for path, lf in self._files.items():
-            name = os.path.basename(path)
-            count_str = f" ({lf.entry_count:,})" if lf.entry_count else ""
-            live_str = " ▶" if lf.is_live else ""
-            item = QTreeWidgetItem([f"{name}{count_str}{live_str}"])
+            item = QTreeWidgetItem([self._item_label(lf, path)])
             item.setData(0, Qt.ItemDataRole.UserRole, path)
             item.setToolTip(0, path)
-            # sub-items
-            fmt_item = QTreeWidgetItem([f"Format: {lf.format_name}"])
-            enc_item = QTreeWidgetItem([f"Encoding: {lf.encoding}"])
             size_kb = lf.size_bytes / 1024
-            size_item = QTreeWidgetItem([f"Size: {size_kb:.1f} KB"])
-            item.addChildren([fmt_item, enc_item, size_item])
+            size_str = f"{size_kb / 1024:.1f} MB" if size_kb >= 1024 else f"{size_kb:.0f} KB"
+            item.addChildren([
+                QTreeWidgetItem([f"Format: {lf.format_name}"]),
+                QTreeWidgetItem([f"Encoding: {lf.encoding}"]),
+                QTreeWidgetItem([f"Size: {size_str}"]),
+            ])
             self._tree.addTopLevelItem(item)
+            item.setExpanded(True)
 
     def _on_item_clicked(self, item: QTreeWidgetItem, _col: int) -> None:
         path = item.data(0, Qt.ItemDataRole.UserRole)

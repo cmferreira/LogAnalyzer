@@ -15,7 +15,7 @@ class DetailPanel(QWidget):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self.setMinimumHeight(160)
+        self.setMinimumHeight(0)
         self._build_ui()
 
     def _build_ui(self) -> None:
