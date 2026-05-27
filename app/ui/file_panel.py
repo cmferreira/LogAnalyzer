@@ -25,18 +25,40 @@ class FilePanel(QWidget):
 
     def _build_ui(self) -> None:
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(4, 4, 4, 4)
-        layout.setSpacing(4)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
-        title = QLabel("Open Files")
-        title.setStyleSheet("font-weight: bold; font-size: 13px;")
-        layout.addWidget(title)
+        # Title bar
+        title_bar = QWidget()
+        title_bar.setFixedHeight(32)
+        title_bar.setStyleSheet(
+            "background-color: #252526; border-bottom: 1px solid #3c3c3c;"
+        )
+        title_bar_layout = QHBoxLayout(title_bar)
+        title_bar_layout.setContentsMargins(10, 0, 8, 0)
+        title_bar_layout.setSpacing(0)
+
+        title = QLabel("OPEN FILES")
+        title.setStyleSheet(
+            "color: #858585; font-size: 11px; font-weight: 700; "
+            "letter-spacing: 1px; background: transparent; border: none;"
+        )
+        title_bar_layout.addWidget(title)
+        title_bar_layout.addStretch()
+        layout.addWidget(title_bar)
 
         self._tree = QTreeWidget()
         self._tree.setHeaderHidden(True)
         self._tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self._tree.customContextMenuRequested.connect(self._context_menu)
         self._tree.itemClicked.connect(self._on_item_clicked)
+        self._tree.setIndentation(12)
+        self._tree.setStyleSheet(
+            "QTreeWidget { background-color: #252526; border: none; }"
+            "QTreeWidget::item { padding: 2px 4px; }"
+            "QTreeWidget::item:hover { background-color: #2a2d2e; }"
+            "QTreeWidget::item:selected { background-color: #094771; }"
+        )
         layout.addWidget(self._tree)
 
     def set_loading(self, path: str, pct: int) -> None:

@@ -20,23 +20,55 @@ class SearchBar(QWidget):
         self._build_ui()
 
     def _build_ui(self) -> None:
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(4, 2, 4, 2)
-        layout.setSpacing(4)
+        self.setFixedHeight(38)
+        self.setStyleSheet(
+            "SearchBar { background-color: #2d2d30; border-bottom: 1px solid #3c3c3c; }"
+        )
 
-        self._label = QLabel("Search:")
-        layout.addWidget(self._label)
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 4, 10, 4)
+        layout.setSpacing(6)
 
         self._edit = QLineEdit()
-        self._edit.setPlaceholderText("Search logs… (Ctrl+F)")
+        self._edit.setPlaceholderText("Search logs…  (Ctrl+F)")
         self._edit.setClearButtonEnabled(True)
+        self._edit.setFixedHeight(26)
+        self._edit.setStyleSheet(
+            "QLineEdit {"
+            "  background-color: #1e1e1e;"
+            "  border: 1px solid #3c3c3c;"
+            "  border-radius: 4px;"
+            "  padding: 2px 8px;"
+            "  font-size: 13px;"
+            "  color: #cccccc;"
+            "}"
+            "QLineEdit:focus {"
+            "  border-color: #007acc;"
+            "}"
+        )
         self._edit.textChanged.connect(self._on_text_changed)
-        layout.addWidget(self._edit)
+        layout.addWidget(self._edit, 1)
+
+        _btn_style = (
+            "QToolButton {"
+            "  background: transparent;"
+            "  border: 1px solid transparent;"
+            "  border-radius: 3px;"
+            "  color: #858585;"
+            "  padding: 2px 6px;"
+            "  font-size: 12px;"
+            "  font-weight: 600;"
+            "}"
+            "QToolButton:hover { color: #cccccc; background-color: #3c3c3c; }"
+            "QToolButton:checked { color: #007acc; border-color: #007acc; background-color: #0e3a5c; }"
+        )
 
         self._regex_btn = QToolButton()
         self._regex_btn.setText(".*")
         self._regex_btn.setCheckable(True)
         self._regex_btn.setToolTip("Regex mode")
+        self._regex_btn.setFixedSize(28, 24)
+        self._regex_btn.setStyleSheet(_btn_style)
         self._regex_btn.toggled.connect(self._emit_search)
         layout.addWidget(self._regex_btn)
 
@@ -44,17 +76,14 @@ class SearchBar(QWidget):
         self._case_btn.setText("Aa")
         self._case_btn.setCheckable(True)
         self._case_btn.setToolTip("Case sensitive")
+        self._case_btn.setFixedSize(28, 24)
+        self._case_btn.setStyleSheet(_btn_style)
         self._case_btn.toggled.connect(self._emit_search)
         layout.addWidget(self._case_btn)
 
-        self._clear_btn = QToolButton()
-        self._clear_btn.setText("✕")
-        self._clear_btn.setToolTip("Clear search")
-        self._clear_btn.clicked.connect(self.clear)
-        layout.addWidget(self._clear_btn)
-
         self._count_label = QLabel("")
-        self._count_label.setMinimumWidth(80)
+        self._count_label.setMinimumWidth(100)
+        self._count_label.setStyleSheet("color: #858585; font-size: 11px;")
         layout.addWidget(self._count_label)
 
         shortcut = QShortcut(QKeySequence("Ctrl+F"), self)

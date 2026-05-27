@@ -56,8 +56,8 @@ class MainWindow(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
         root_layout = QVBoxLayout(central)
-        root_layout.setContentsMargins(4, 4, 4, 4)
-        root_layout.setSpacing(4)
+        root_layout.setContentsMargins(0, 0, 0, 0)
+        root_layout.setSpacing(0)
 
         # Search bar at top
         self._search_bar = SearchBar()
@@ -250,7 +250,7 @@ class MainWindow(QMainWindow):
         sb.addPermanentWidget(self._count_label)
 
         self._live_label = QLabel("")
-        self._live_label.setStyleSheet("color: #4CAF50;")
+        self._live_label.setObjectName("liveLabel")
         sb.addPermanentWidget(self._live_label)
 
     # ─── File operations ────────────────────────────────────────────────────
